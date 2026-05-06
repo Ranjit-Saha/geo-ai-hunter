@@ -7,7 +7,6 @@ from datetime import datetime
 # RnJt's Job Assistant >> Creation Date: 06 May 2026
 # --- 1. THE 2026 SPECIALIST CONFIG ---
 PRIMARY_KEYWORDS = [
-    "Remote", "Data", "Engineer",
     "SAR", "Radar", "Sentinel", "Satellite Imagery", "Carbon Credit", "Flood Detection", "Parametric Insurance", 
     "GeoAI", "Geospatial AI", "Earth Observation", "SatSure", "Pixxel", "GalaxEye", "Cropin", "DeHaat", "ICEYE", 
     "Capella Space", "Blue Sky Analytics", "Lemma Earth", "Varaha", "VANYA", "Sylvera (UK)", "RenewCred", "DeepMatrix",
