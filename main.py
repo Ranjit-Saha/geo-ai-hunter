@@ -4,7 +4,6 @@ import feedparser
 import time
 from datetime import datetime
 
-# RnJt's Job Assistant >> Specialized GeoAI Target Matrix
 # --- 1. KEYWORD FILTERS ---
 PRIMARY_KEYWORDS = [
     "SAR", "Radar", "Sentinel", "Satellite Imagery", "Carbon Credit", "Flood Detection", "Parametric Insurance", 
@@ -21,9 +20,9 @@ SECONDARY_KEYWORDS = [
 
 NEGATIVE_KEYWORDS = ["Senior", "Lead", "Manager", "Director", "Sales", "Intern", "Recruiter"]
 
-# --- 2. LIVE OPERATIONAL RSS FEED ENDPOINTS (FIXED TO RAW XML DATA) ---
+# --- 2. LIVE OPERATIONAL RSS FEED ENDPOINTS ---
 RSS_FEEDS = [
-    "https://weworkremotely.com/categories/remote-data-science-jobs.rss",
+    "https://weworkremotely.com/remote-jobs.rss",  # Changed to the global stable root feed
     "https://remotive.com/api/remote-jobs/feed",
     "https://aijobs.net/feed/",
     "https://climatetechlist.com/feed.xml"
@@ -37,30 +36,31 @@ def send_telegram_alert(job_title, job_link, priority="Normal"):
         print("⚠️ Configuration Error: Environment variables BOT_TOKEN or CHAT_ID are missing.")
         return
 
-    # Clean token to ensure 'bot' prefix is handled seamlessly
     token_str = str(token).strip()
     if not token_str.startswith("bot"):
         bot_endpoint = f"bot{token_str}"
     else:
         bot_endpoint = token_str
 
-    header = "🔥 **HIGH PRIORITY MATCH**" if priority == "High" else "🛰 **GeoAI Match Found**"
+    if priority == "Test":
+        header = "⚡ **HUNTER HEARTBEAT SYSTEM TEST**"
+        message = f"{header}\n\n🟢 The wire is connected! The hunter engine is successfully running in the cloud and can reach your phone.\n\nTime: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    else:
+        header = "🔥 **HIGH PRIORITY MATCH**" if priority == "High" else "🛰 **GeoAI Match Found**"
+        message = (
+            f"{header}\n\n"
+            f"**Role:** {job_title}\n"
+            f"**Context:** IT + GIS Hybrid Specialist\n\n"
+            f"🔗 [View & Apply Quickly]({job_link})"
+        )
 
-    message = (
-        f"{header}\n\n"
-        f"**Role:** {job_title}\n"
-        f"**Context:** IT + GIS Hybrid Specialist\n\n"
-        f"🔗 [View & Apply Quickly]({job_link})"
-    )
-
-    # FIXED: True Telegram API Subdomain address
     url = f"https://api.telegram.org/{bot_endpoint}/sendMessage"
     payload = {"chat_id": str(chat_id).strip(), "text": message, "parse_mode": "Markdown"}
 
     try:
         response = requests.post(url, json=payload)
         if response.status_code == 200:
-            print(f"✅ Alert dispatched successfully: {job_title}")
+            print(f"✅ Alert dispatched successfully: {job_title if priority != 'Test' else 'Heartbeat Signal'}")
         else:
             print(f"❌ Telegram Gateway Error: {response.status_code} - {response.text}")
     except Exception as e:
@@ -83,18 +83,15 @@ def check_jobs():
                 title = entry.get('title', '')
                 link = entry.get('link', '')
 
-                # Filter out management/sales
                 if any(n.lower() in title.lower() for n in NEGATIVE_KEYWORDS):
                     continue
 
-                # Primary target matches
                 if any(p.lower() in title.lower() for p in PRIMARY_KEYWORDS):
                     send_telegram_alert(title, link, priority="High")
                     count += 1
                     time.sleep(1) 
                     continue
 
-                # Secondary target matches
                 if any(s.lower() in title.lower() for s in SECONDARY_KEYWORDS):
                     send_telegram_alert(title, link, priority="Normal")
                     count += 1
@@ -104,6 +101,10 @@ def check_jobs():
             print(f"📡 Feed read interruption at {feed_url}: {e}")
 
     print(f"🎯 Total Specialist Opportunities Hooked: {count}")
+    
+    # --- WIRE TEST FORCED SIGNAL ---
+    print("📡 Sending Test Heartbeat Signal to Telegram...")
+    send_telegram_alert("Heartbeat Test", "", priority="Test")
 
 if __name__ == '__main__':
     check_jobs()
